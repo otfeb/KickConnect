@@ -17,7 +17,6 @@ import java.util.Map;
 @Component
 public class MatchCrawler {
 
-    @Bean
     public List<MatchDTO> plab() {
 
         List<MatchDTO> list = new ArrayList<>();
