@@ -23,7 +23,7 @@ public class MatchCrawler {
 
         try {
             // 요청 URL
-            String url = "https://www.plabfootball.com/api/v2/integrated-matches/?page_size=200&ordering=schedule&sch=2025-01-22&hide_soldout=&region=1";
+            String url = "https://www.plabfootball.com/api/v2/integrated-matches/?page_size=200&ordering=schedule&sch=2025-01-23&hide_soldout=&region=1";
 
             // HttpClient 생성
             HttpClient client = HttpClient.newHttpClient();
@@ -54,7 +54,8 @@ public class MatchCrawler {
                             match.get("label_title2").toString(),
                             match.get("area_group_name").toString(),
                             match.get("display_level").toString(),
-                            match.get("player_cnt").toString() + "vs" + match.get("player_cnt").toString()
+                            match.get("player_cnt").toString() + "vs" + match.get("player_cnt").toString(),
+                            match.get("apply_status").toString()
                     );
                     list.add(dto);
                 }

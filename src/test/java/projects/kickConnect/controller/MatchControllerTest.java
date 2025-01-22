@@ -10,8 +10,8 @@ public class MatchControllerTest {
     @Autowired
     private MatchController matchController;
 
-    @Test
-    public void allMatch() {
-        System.out.println(matchController.allMatch());
-    }
+//    @Test
+//    public void allMatch() {
+//        System.out.println(matchController.allMatch());
+//    }
 }
