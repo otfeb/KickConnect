@@ -18,6 +18,9 @@ public class MatchController {
 
     @GetMapping
     public List<MatchDTO> allMatch() {
-        return null;
+
+        List<MatchDTO> list = matchCrawler.plab();
+
+        return list;
     }
 }

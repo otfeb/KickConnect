@@ -2,23 +2,29 @@ package projects.kickConnect.crawler;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
+import projects.kickConnect.dto.MatchDTO;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 @Component
 public class MatchCrawler {
 
-    public static void main(String[] args) throws IOException {
+    @Bean
+    public List<MatchDTO> plab() {
+
+        List<MatchDTO> list = new ArrayList<>();
+
         try {
             // 요청 URL
-            String url = "https://www.plabfootball.com/api/v2/integrated-matches/?page_size=100&ordering=schedule&sch=2025-01-22&hide_soldout=&region=1"; // 실제 API URL로 대체
+            String url = "https://www.plabfootball.com/api/v2/integrated-matches/?page_size=200&ordering=schedule&sch=2025-01-22&hide_soldout=&region=1";
 
             // HttpClient 생성
             HttpClient client = HttpClient.newHttpClient();
@@ -37,18 +43,27 @@ public class MatchCrawler {
                     response.body(), new TypeReference<List<Map<String, Object>>>() {}
             );
 
-            // 변환된 데이터를 출력
             for (Map<String, Object> match : matchList) {
-                System.out.println("ID: " + match.get("id"));
-                System.out.println("구장 정보: " + match.get("label_title2"));
-                System.out.println("날짜: " + match.get("schedule"));
-                System.out.println("지역: " + match.get("area_group_name"));
-                System.out.println("성별: " + match.get("display_level"));
-                System.out.println("매치 인원: " + match.get("player_cnt") + "vs" + match.get("player_cnt"));
-                System.out.println("---------------------------");
+                // 소셜 경기만
+                if (match.get("product_type").toString().equals("social")) {
+                    MatchDTO dto = new MatchDTO(
+                            1L,
+                            "plab",
+                            match.get("id").toString(),
+                            match.get("schedule").toString(),
+                            match.get("label_schedule9").toString(),
+                            match.get("label_title2").toString(),
+                            match.get("area_group_name").toString(),
+                            match.get("display_level").toString(),
+                            match.get("player_cnt").toString() + "vs" + match.get("player_cnt").toString()
+                    );
+                    list.add(dto);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        return list;
     }
 }

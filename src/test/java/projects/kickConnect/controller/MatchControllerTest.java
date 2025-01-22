@@ -12,6 +12,6 @@ public class MatchControllerTest {
 
     @Test
     public void allMatch() {
-
+        System.out.println(matchController.allMatch());
     }
 }
