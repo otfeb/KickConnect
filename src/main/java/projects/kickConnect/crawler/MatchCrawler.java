@@ -2,6 +2,7 @@ package projects.kickConnect.crawler;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import projects.kickConnect.dto.MatchDTO;
 
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Component
 public class MatchCrawler {
 
@@ -45,7 +47,7 @@ public class MatchCrawler {
 
             // 요청 URL
             String url = "https://www.plabfootball.com/api/v2/integrated-matches/?page_size=700&ordering=schedule&sch=" + sch + gender + hide_soldout + "&region=" + region;
-            System.out.println("실제 요청 URL: "+url);
+            log.info("실제 요청 URL: "+url);
 
             // HttpClient 생성
             HttpClient client = HttpClient.newHttpClient();
