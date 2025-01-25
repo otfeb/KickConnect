@@ -19,9 +19,14 @@ public class MatchController {
     private final MatchCrawler matchCrawler;
 
     @GetMapping
-    public ResponseEntity<List<MatchDTO>> allMatch() {
+    public ResponseEntity<List<MatchDTO>> allMatch(
+            @RequestParam("matchDate") String sch,
+            @RequestParam("region") String region,
+            @RequestParam("gender") String gender,
+            @RequestParam("soldout") String soldout
+    ) {
 
-        List<MatchDTO> list = matchCrawler.plab();
+        List<MatchDTO> list = matchCrawler.plab(sch, region, gender, soldout);
 
         return ResponseEntity.ok(list);
     }

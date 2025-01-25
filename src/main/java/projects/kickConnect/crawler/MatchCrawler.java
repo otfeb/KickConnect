@@ -2,7 +2,6 @@ package projects.kickConnect.crawler;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import projects.kickConnect.dto.MatchDTO;
 
@@ -17,13 +16,36 @@ import java.util.Map;
 @Component
 public class MatchCrawler {
 
-    public List<MatchDTO> plab() {
+    public List<MatchDTO> plab(String sch, String region, String gender, String soldout) {
 
         List<MatchDTO> list = new ArrayList<>();
 
         try {
+            // 지역
+            if (Integer.parseInt(region) < 3) {
+                region = String.valueOf(Integer.parseInt(region) + 1);
+            } else {
+                region = "6";
+            }
+
+            // 성별
+            if (gender.equals("0")) {
+                gender = "&sex=0";
+            } else if (gender.equals("1")) {
+                gender = "&sex=1";
+            } else if (gender.equals("-1")) {
+                gender = "&sex=-1";
+            }
+
+            // 마감 가리기
+            String hide_soldout = "";
+            if (soldout.equals("true")) {
+                hide_soldout = "&hide_soldout=";
+            }
+
             // 요청 URL
-            String url = "https://www.plabfootball.com/api/v2/integrated-matches/?page_size=200&ordering=schedule&sch=2025-01-23&hide_soldout=&region=1";
+            String url = "https://www.plabfootball.com/api/v2/integrated-matches/?page_size=700&ordering=schedule&sch=" + sch + gender + hide_soldout + "&region=" + region;
+            System.out.println("실제 요청 URL: "+url);
 
             // HttpClient 생성
             HttpClient client = HttpClient.newHttpClient();
