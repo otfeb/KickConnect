@@ -4,6 +4,7 @@ public record MatchDTO(
         Long app_id,
         String app_name,
         String match_id,
+        String match_url,
         String match_date,
         String match_time,
         String place,

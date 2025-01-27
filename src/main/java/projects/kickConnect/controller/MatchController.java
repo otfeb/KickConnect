@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 import projects.kickConnect.crawler.MatchCrawler;
 import projects.kickConnect.dto.MatchDTO;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @RestController
@@ -20,14 +22,27 @@ public class MatchController {
 
     @GetMapping
     public ResponseEntity<List<MatchDTO>> allMatch(
-            @RequestParam("matchDate") String sch,
+            @RequestParam("matchDate") String matchDate,
             @RequestParam("region") String region,
             @RequestParam("gender") String gender,
             @RequestParam("soldout") String soldout
     ) {
 
-        List<MatchDTO> list = matchCrawler.plab(sch, region, gender, soldout);
+        List<MatchDTO> totalMatchList = new ArrayList<>();
 
-        return ResponseEntity.ok(list);
+        List<MatchDTO> plabMatchList = matchCrawler.plab(matchDate, region, gender, soldout);
+        List<MatchDTO> puzzleMatchList = matchCrawler.puzzle(matchDate, region, gender, soldout);
+
+//         각 어플의 매치 경기 합치기
+        totalMatchList.addAll(plabMatchList);
+        totalMatchList.addAll(puzzleMatchList);
+
+        totalMatchList.sort(
+                Comparator.comparing(MatchDTO::match_date)  // 1순위: match_date
+                        .thenComparing(MatchDTO::match_time) // 2순위: match_time
+                        .thenComparing(MatchDTO::app_name)   // 3순위: app_name
+        );
+
+        return ResponseEntity.ok(totalMatchList);
     }
 }
