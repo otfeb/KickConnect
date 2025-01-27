@@ -31,10 +31,16 @@ public class MatchController {
 
         List<MatchDTO> totalMatchList = new ArrayList<>();
 
-        List<MatchDTO> plabMatchList = matchCrawler.plab(matchDate, region, gender);
-        List<MatchDTO> puzzleMatchList = matchCrawler.puzzle(matchDate, region, gender);
+        List<MatchDTO> plabMatchList = matchCrawler.plab(matchDate, region);
+        List<MatchDTO> puzzleMatchList = matchCrawler.puzzle(matchDate, region);
 
-//         각 어플의 매치 경기 합치기
+        // 부산일 경우만
+        if (region.equals("3")) {
+            List<MatchDTO> urbanMatchList = matchCrawler.urban(matchDate, region);
+            totalMatchList.addAll(urbanMatchList);
+        }
+
+        // 각 어플의 매치 경기 합치기
         totalMatchList.addAll(plabMatchList);
         totalMatchList.addAll(puzzleMatchList);
 
@@ -43,6 +49,22 @@ public class MatchController {
                         .thenComparing(MatchDTO::match_time) // 2순위: match_time
                         .thenComparing(MatchDTO::app_name)   // 3순위: app_name
         );
+
+        // 성별 필터링
+        if (!gender.equals("")) {
+            totalMatchList = totalMatchList.stream()
+                    .filter(match -> {
+                        if (gender.equals("0")) {
+                            return match.gender().equals("남녀모두");
+                        } else if (gender.equals("1")) {
+                            return match.gender().equals("남자");
+                        } else if (gender.equals("-1")) {
+                            return match.gender().equals("여자");
+                        }
+                        return false; // 잘못된 값은 필터링 제외
+                    })
+                    .collect(Collectors.toList());
+        }
 
         if (soldout.equals("true")) {
             List<MatchDTO> hideSoldoutMatchList = totalMatchList.stream()
