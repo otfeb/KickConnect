@@ -34,10 +34,13 @@ public class MatchController {
         List<MatchDTO> plabMatchList = matchCrawler.plab(matchDate, region);
         List<MatchDTO> puzzleMatchList = matchCrawler.puzzle(matchDate, region);
 
-        // 부산일 경우만
+        // only 부산
         if (region.equals("3")) {
             List<MatchDTO> urbanMatchList = matchCrawler.urban(matchDate, region);
             totalMatchList.addAll(urbanMatchList);
+        } else if (region.equals("0")) {    // only 서울
+            List<MatchDTO> withMatchList = matchCrawler.with(matchDate, region);
+            totalMatchList.addAll(withMatchList);
         }
 
         // 각 어플의 매치 경기 합치기

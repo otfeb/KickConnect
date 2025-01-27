@@ -242,4 +242,73 @@ public class MatchCrawler {
         }
         return list;
     }
+
+    public List<MatchDTO> with(String matchDate, String region) {
+        List<MatchDTO> list = new ArrayList<>();
+
+        try {
+            String url = "https://withfutsal.com/ajaxProcSocialMatch.php";
+            String body = "cmd=search_info&day=" + matchDate + "&area_code=all&member_code=all&match_type=null&pajeon=null&gender=null&game_level=null";
+            log.info("위드풋살 요청: " + body);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .POST(HttpRequest.BodyPublishers.ofString(body))
+                    .header("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+                    .header("User-Agent", "Mozilla/5.0")
+                    .header("accept", "application/json, text/javascript, */*; q=0.01")
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            Map<String, Object> wrapList = objectMapper.readValue(
+                    response.body(), new TypeReference<>() {}
+            );
+
+            if (wrapList.get("return_msg").toString().equals("성공")) {
+                List<Map<String, Object>> matchList = (List<Map<String, Object>>) wrapList.get("block_list");
+
+                for (Map<String, Object> match : matchList) {
+
+                    String match_id = match.get("idx").toString();
+                    String match_url = "https://withfutsal.com/Sub/ground.php?block_idx=" + match_id;
+
+                    String match_gender = "";
+                    if (match.get("gender").equals("0")) {
+                        match_gender = "남자";
+                    } else if (match.get("gender").equals("1")) {
+                        match_gender = "여자";
+                    } else {
+                        match_gender = "남녀모두";
+                    }
+
+                    String players = String.valueOf(Integer.parseInt(match.get("personnel_max").toString()) / 3);
+
+                    String isFull = "available";
+                    if (match.get("personnel_max").toString().equals(match.get("buy_count").toString())) {
+                        isFull = "full";
+                    }
+
+                    MatchDTO dto = new MatchDTO(
+                            4L,
+                            "with",
+                            match_id,
+                            match_url,
+                            matchDate,
+                            match.get("play_time").toString(),
+                            match.get("mem_name").toString() + match.get("stadium_name").toString(),
+                            null,
+                            match_gender,
+                            players + " vs " + players,
+                            isFull
+                    );
+                    list.add(dto);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
 }
