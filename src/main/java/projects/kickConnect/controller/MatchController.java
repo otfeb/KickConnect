@@ -12,6 +12,7 @@ import projects.kickConnect.dto.MatchDTO;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/matches")
@@ -30,8 +31,8 @@ public class MatchController {
 
         List<MatchDTO> totalMatchList = new ArrayList<>();
 
-        List<MatchDTO> plabMatchList = matchCrawler.plab(matchDate, region, gender, soldout);
-        List<MatchDTO> puzzleMatchList = matchCrawler.puzzle(matchDate, region, gender, soldout);
+        List<MatchDTO> plabMatchList = matchCrawler.plab(matchDate, region, gender);
+        List<MatchDTO> puzzleMatchList = matchCrawler.puzzle(matchDate, region, gender);
 
 //         각 어플의 매치 경기 합치기
         totalMatchList.addAll(plabMatchList);
@@ -42,6 +43,14 @@ public class MatchController {
                         .thenComparing(MatchDTO::match_time) // 2순위: match_time
                         .thenComparing(MatchDTO::app_name)   // 3순위: app_name
         );
+
+        if (soldout.equals("true")) {
+            List<MatchDTO> hideSoldoutMatchList = totalMatchList.stream()
+                    .filter((item) -> !item.apply_status().equals("full"))
+                    .toList();
+
+            return ResponseEntity.ok(hideSoldoutMatchList);
+        }
 
         return ResponseEntity.ok(totalMatchList);
     }

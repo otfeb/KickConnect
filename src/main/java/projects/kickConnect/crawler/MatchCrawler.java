@@ -21,7 +21,7 @@ public class MatchCrawler {
     private static final HttpClient client = HttpClient.newHttpClient();
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public List<MatchDTO> plab(String matchDate, String region, String gender, String soldout) {
+    public List<MatchDTO> plab(String matchDate, String region, String gender) {
 
         List<MatchDTO> list = new ArrayList<>();
 
@@ -42,14 +42,8 @@ public class MatchCrawler {
                 gender = "&sex=-1";
             }
 
-            // 마감 가리기
-            String hide_soldout = "";
-            if (soldout.equals("true")) {
-                hide_soldout = "&hide_soldout=";
-            }
-
             // 요청 URL
-            String url = "https://www.plabfootball.com/api/v2/integrated-matches/?page_size=700&ordering=schedule&sch=" + matchDate + gender + hide_soldout + "&region=" + region;
+            String url = "https://www.plabfootball.com/api/v2/integrated-matches/?page_size=700&ordering=schedule&sch=" + matchDate + gender + "&region=" + region;
             log.info("플랩풋볼 요청 URL: "+url);
 
             // HttpRequest 생성
@@ -100,12 +94,32 @@ public class MatchCrawler {
         return list;
     }
 
-    public List<MatchDTO> puzzle(String matchDate, String region, String gender, String soldout) {
+    public List<MatchDTO> puzzle(String matchDate, String region, String gender) {
         List<MatchDTO> list = new ArrayList<>();
+
+        // 퍼즐 지역 코드(서울, 경기, 인천, 부산)
+        if (region.equals("0")) {
+            region = ",\"region\": [\"5e8190a8bb3b302ce2e03279\"]";
+        } else if (region.equals("1")) {
+            region = ",\"region\": [\"65126e1929b8b579c68f372e\", \"65126e3929b8b579c68f372f\", \"67079dff33a5b1290b8a3944\",\"67079e0d33a5b1290b8a3945\"]";
+        } else if (region.equals("2")) {
+            region = ",\"region\": [\"657004ee4cf9a54480c02ecc\"]";
+        } else {
+            region = ",\"region\": [\"65126e9529b8b579c68f3730\"]";
+        }
+
+        // 성별 필터
+        if (gender.equals("0")) {
+            gender = ",\"gender\": [\"3\"]";
+        } else if (gender.equals("1")) {
+            gender = ",\"gender\": [\"1\"]";
+        } else if (gender.equals("-1")) {
+            gender = ",\"gender\": [\"2\"]";
+        }
 
         try {
             String url = "https://puzzleplay.kr/filter";
-            String body = "{\"XHR\":true,\"active_date\":\"" + matchDate + "\",\"match_date\":\"" + matchDate + "\"}";
+            String body = "{\"XHR\":true,\"active_date\":\"" + matchDate + "\",\"match_date\":\"" + matchDate + "\"" + region + gender + "}";
             log.info("퍼즐플레이 요청 body: " + body);
 
             HttpRequest request = HttpRequest.newBuilder()
