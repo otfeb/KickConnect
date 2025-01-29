@@ -54,5 +54,10 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             sudo pkill -f 'java -jar' || true
+            sleep 5
+            ps aux | grep 'java -jar'
             mv futsal-platform.jar /home/${{ secrets.SERVER_USER }}/futsal-platform.jar
-            nohup java -jar /home/${{ secrets.SERVER_USER }}/futsal-platform.jar > app.log 2>&1 &
+            chmod +x /home/${{ secrets.SERVER_USER }}/futsal-platform.jar
+            nohup setsid java -jar /home/${{ secrets.SERVER_USER }}/futsal-platform.jar > app.log 2>&1 &
+            sleep 2
+            ps aux | grep 'java -jar'
