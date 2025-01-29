@@ -39,7 +39,6 @@ public class MatchCrawler {
 
             // 요청 URL
             String url = "https://www.plabfootball.com/api/v2/integrated-matches/?page_size=700&ordering=schedule&sch=" + matchDate + "&region=" + region;
-            log.info("플랩풋볼 요청 URL: "+url);
 
             // HttpRequest 생성
             HttpRequest request = HttpRequest.newBuilder()
@@ -47,8 +46,11 @@ public class MatchCrawler {
                     .header("User-Agent", "Mozilla/5.0")    // 필요 시 헤더 추가
                     .build();
 
-            // 요청 보내기
+            // 요청 응답시간 확인
+            long startTime = System.currentTimeMillis();
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            long duration = System.currentTimeMillis() - startTime;
+            log.info("요청 URL: {}, 응답 코드: {}, 소요 시간: {}ms", url, response.statusCode(), duration);
 
             List<Map<String, Object>> matchList = objectMapper.readValue(
                     response.body(), new TypeReference<>() {}
@@ -106,7 +108,6 @@ public class MatchCrawler {
         try {
             String url = "https://puzzleplay.kr/filter";
             String body = "{\"XHR\":true,\"active_date\":\"" + matchDate + "\",\"match_date\":\"" + matchDate + "\"" + region + "}";
-            log.info("퍼즐플레이 요청 body: " + body);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -115,7 +116,10 @@ public class MatchCrawler {
                     .header("User-Agent", "Mozilla/5.0")
                     .build();
 
+            long startTime = System.currentTimeMillis();
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            long duration = System.currentTimeMillis() - startTime;
+            log.info("요청 URL: {}, 요청 BODY: {}, 응답 코드: {}, 소요 시간: {}ms", url, body, response.statusCode(), duration);
 
             Map<String, Object> extractBody = objectMapper.readValue(
                     response.body(), new TypeReference<>() {
@@ -184,7 +188,6 @@ public class MatchCrawler {
             String url = "https://urbanfootball.co.kr/result/result_get_data.php";
             // form 데이터 형식(기본 String 타입)
             String body = "mode=get_goods_list&date=" + matchDate + "&area=2";
-            log.info("어반풋볼 요청: " + body);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -193,7 +196,10 @@ public class MatchCrawler {
                     .header("User-Agent", "Mozilla/5.0")
                     .build();
 
+            long startTime = System.currentTimeMillis();
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            long duration = System.currentTimeMillis() - startTime;
+            log.info("요청 URL: {}, 요청 BODY: {}, 응답 코드: {}, 소요 시간: {}ms", url, body, response.statusCode(), duration);
 
             Document document = Jsoup.parse(response.body());
             Elements matchList = document.select("ul.goods_table_item");
@@ -249,7 +255,6 @@ public class MatchCrawler {
         try {
             String url = "https://withfutsal.com/ajaxProcSocialMatch.php";
             String body = "cmd=search_info&day=" + matchDate + "&area_code=all&member_code=all&match_type=null&pajeon=null&gender=null&game_level=null";
-            log.info("위드풋살 요청: " + body);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -259,7 +264,10 @@ public class MatchCrawler {
                     .header("accept", "application/json, text/javascript, */*; q=0.01")
                     .build();
 
+            long startTime = System.currentTimeMillis();
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            long duration = System.currentTimeMillis() - startTime;
+            log.info("요청 URL: {}, 요청 BODY: {}, 응답 코드: {}, 소요 시간: {}ms", url, body, response.statusCode(), duration);
 
             Map<String, Object> wrapList = objectMapper.readValue(
                     response.body(), new TypeReference<>() {}
