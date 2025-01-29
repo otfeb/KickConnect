@@ -53,6 +53,6 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            pkill -f 'java -jar' || true
+            sudo pkill -f 'java -jar' || true
             mv futsal-platform.jar /home/${{ secrets.SERVER_USER }}/futsal-platform.jar
             nohup java -jar /home/${{ secrets.SERVER_USER }}/futsal-platform.jar > app.log 2>&1 &
