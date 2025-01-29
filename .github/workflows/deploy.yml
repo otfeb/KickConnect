@@ -29,11 +29,14 @@ jobs:
       - name: Build with Gradle Wrapper
         run: ./gradlew build
 
+      - name: List generated JAR files
+        run: ls -lah build/libs/
+
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v3
         with:
           name: futsal-platform
-          path: build/libs/*.jar
+          path: build/libs/kickConnect-0.0.1-SNAPSHOT.jar
 
   deploy:
     needs: build
@@ -49,9 +52,12 @@ jobs:
           name: futsal-platform
           path: .
 
+      - name: Check downloaded JAR File
+        run: ls -lah .
+
       - name: Copy JAR to EC2 using SCP
         run: |
-           scp -o StrictHostKeyChecking=no -i kickconnect-key.pem build/libs/kickConnect-0.0.1-SNAPSHOT.jar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/home/${{ secrets.SERVER_USER }}/kickConnect-0.0.1-SNAPSHOT.jar
+           scp -o StrictHostKeyChecking=no -i kickconnect-key.pem ./kickConnect-0.0.1-SNAPSHOT.jar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/kickConnect-0.0.1-SNAPSHOT.jar
 
       - name: Deploy to Server
         uses: appleboy/ssh-action@v0.1.7
