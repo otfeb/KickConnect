@@ -40,11 +40,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Github Repository Clone
+        uses: actions/checkout@v4
+        
       - name: Download Build Artifact
         uses: actions/download-artifact@v3
         with:
           name: futsal-platform
           path: .
+
+      - name: Copy JAR to EC2 using SCP
+        run: |
+           scp -o StrictHostKeyChecking=no -i kickconnect-key.pem build/libs/kickConnect-0.0.1-SNAPSHOT.jar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/home/${{ secrets.SERVER_USER }}/kickConnect-0.0.1-SNAPSHOT.jar
 
       - name: Deploy to Server
         uses: appleboy/ssh-action@v0.1.7
@@ -54,10 +61,18 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             sudo pkill -f 'java -jar' || true
-            sleep 5
-            ps aux | grep 'java -jar'
-            mv futsal-platform.jar /home/${{ secrets.SERVER_USER }}/futsal-platform.jar
-            chmod +x /home/${{ secrets.SERVER_USER }}/futsal-platform.jar
-            nohup setsid java -jar /home/${{ secrets.SERVER_USER }}/futsal-platform.jar > app.log 2>&1 &
+            sleep 3
+
+            # 🔹 기존 프로세스 강제 종료
+            PID=$(ps aux | grep 'java -jar' | grep -v grep | awk '{print $2}')
+            if [ ! -z "$PID" ]; then
+              echo "Killing process $PID"
+              sudo kill -9 $PID
+              sleep 3
+            fi
+
+            chmod +x /home/${{ secrets.SERVER_USER }}/kickConnect-0.0.1-SNAPSHOT.jar
+            nohup java -jar /home/${{ secrets.SERVER_USER }}/kickConnect-0.0.1-SNAPSHOT.jar > /home/${{ secrets.SERVER_USER }}/app.log 2>&1 &
+
             sleep 2
             ps aux | grep 'java -jar'
