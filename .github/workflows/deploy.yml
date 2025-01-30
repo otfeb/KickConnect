@@ -55,6 +55,11 @@ jobs:
       - name: Check downloaded JAR File
         run: ls -lah .
 
+      - name: Set up SSH Key
+        run: |
+          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/kickconnect-key.pem
+          chmod 600 ~/kickconnect-key.pem
+
       - name: Copy JAR to EC2 using SCP
         run: |
            scp -o StrictHostKeyChecking=no -i kickconnect-key.pem ./kickConnect-0.0.1-SNAPSHOT.jar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/kickConnect-0.0.1-SNAPSHOT.jar
