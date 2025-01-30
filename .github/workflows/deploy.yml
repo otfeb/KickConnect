@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Github Repository Clone
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
     
       - name: Set up JDK 21
         uses: actions/setup-java@v3
@@ -23,67 +23,18 @@ jobs:
       - name: Grant execute permission for Gradle
         run: chmod +x gradlew
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
       - name: Build with Gradle Wrapper
         run: ./gradlew build
 
-      - name: List generated JAR files
-        run: ls -lah build/libs/
+      - name: Extract JAR filename
+        run: echo "JAR_FILE=$(ls build/libs/*.jar | head -n 1)" >> $GITHUB_ENV
 
-      - name: Upload Build Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: futsal-platform
-          path: build/libs/kickConnect-0.0.1-SNAPSHOT.jar
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Github Repository Clone
-        uses: actions/checkout@v4
-        
-      - name: Download Build Artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: futsal-platform
-          path: .
-
-      - name: Check downloaded JAR File
-        run: ls -lah .
-
-      - name: Set up SSH Key
+      - name: Configure SSH Key
         run: |
-          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/kickconnect-key.pem
-          chmod 600 ~/kickconnect-key.pem
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/deploy_key.pem
+          chmod 600 ~/.ssh/deploy_key.pem
 
-      - name: Copy JAR to EC2 using SCP
+      - name: Copy JAR to EC2
         run: |
-           scp -o StrictHostKeyChecking=no -i kickconnect-key.pem ./kickConnect-0.0.1-SNAPSHOT.jar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/kickConnect-0.0.1-SNAPSHOT.jar
-
-      - name: Deploy to Server
-        uses: appleboy/ssh-action@v0.1.7
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          script: |
-            sudo pkill -f 'java -jar' || true
-            sleep 3
-
-            # 🔹 기존 프로세스 강제 종료
-            PID=$(ps aux | grep 'java -jar' | grep -v grep | awk '{print $2}')
-            if [ ! -z "$PID" ]; then
-              echo "Killing process $PID"
-              sudo kill -9 $PID
-              sleep 3
-            fi
-
-            chmod +x /home/${{ secrets.SERVER_USER }}/kickConnect-0.0.1-SNAPSHOT.jar
-            nohup java -jar /home/${{ secrets.SERVER_USER }}/kickConnect-0.0.1-SNAPSHOT.jar > /home/${{ secrets.SERVER_USER }}/app.log 2>&1 &
-
-            sleep 2
-            ps aux | grep 'java -jar'
+          scp -i ~/.ssh/deploy_key.pem ${{ env.JAR_FILE }} ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/kickconnect.jar
