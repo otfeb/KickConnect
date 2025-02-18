@@ -40,7 +40,7 @@ jobs:
 
       - name: Copy JAR to EC2
         run: |
-          scp -i "C:\Users\USER\.ssh\kickconnect-key.pem" ${{ env.JAR_FILE }} ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/kickconnect.jar
+          scp -i "C:/Users/USER/.ssh/kickconnect-key.pem" ${{ env.JAR_FILE }} ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/kickconnect.jar
 
   deploy:
     runs-on: ubuntu-latest
