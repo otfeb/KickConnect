@@ -1,0 +1,70 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Github Repository Clone
+        uses: actions/checkout@v3
+    
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Grant execute permission for Gradle
+        run: chmod +x gradlew
+
+      - name: Build with Gradle Wrapper
+        run: ./gradlew build
+
+      - name: Extract JAR filename
+        run: echo "JAR_FILE=$(ls build/libs/*.jar | head -n 1)" >> $GITHUB_ENV
+
+      - name: Debug Build Directory
+        run: ls -lah build/libs/
+
+      - name: Configure SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/kickconnect-key.pem
+          chmod 600 ~/.ssh/kickconnect-key.pem
+
+      - name: Add EC2 Server to Known Hosts
+        run: ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Copy JAR to EC2
+        run: |
+          scp -i ~/.ssh/kickconnect-key.pem ${{ env.JAR_FILE }} ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/kickconnect.jar
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Configure SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/kickconnect-key.pem
+          chmod 600 ~/.ssh/kickconnect-key.pem
+
+      - name: Add EC2 Server to Known Hosts
+        run: ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Restart Application on EC2
+        run: |
+          ssh -i ~/.ssh/kickconnect-key.pem ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+          # 기존 실행 중인 애플리케이션 종료
+          sudo pkill -f 'java -jar' || true
+          
+          # 새 JAR 실행 (백그라운드 실행)
+          nohup java -jar ~/kickconnect.jar > ~/app.log 2>&1 &
+          EOF
