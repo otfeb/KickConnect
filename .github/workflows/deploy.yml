@@ -27,7 +27,7 @@ jobs:
         run: ./gradlew build
 
       - name: Extract JAR filename
-        run: echo "JAR_FILE=$(ls build/libs/*.jar | head -n 1)" >> $GITHUB_ENV
+        run: echo "JAR_FILE=$(ls build/libs/*.jar | grep -v 'plain' | head -n 1)" >> $GITHUB_ENV
 
       - name: Debug Build Directory
         run: ls -lah build/libs/
