@@ -27,20 +27,20 @@ jobs:
         run: ./gradlew build
 
       - name: Extract JAR filename
-        run: echo "JAR_FILE=$(ls build/libs/*.jar | head -n 1)" >> $GITHUB_ENV
+        run: echo "JAR_FILE=$(realpath build/libs/*.jar | head -n 1)" >> $GITHUB_ENV
 
       - name: Configure SSH Key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/deploy_key.pem
-          chmod 600 ~/.ssh/deploy_key.pem
+          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/kickconnect-key.pem
+          chmod 600 ~/.ssh/kickconnect-key.pem
 
       - name: Add EC2 Server to Known Hosts
         run: ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
       - name: Copy JAR to EC2
         run: |
-          scp -i ~/.ssh/deploy_key.pem ${{ env.JAR_FILE }} ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/kickconnect.jar
+          scp -i ~/.ssh/kickconnect-key.pem ${{ env.JAR_FILE }} ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/kickconnect.jar
 
   deploy:
     runs-on: ubuntu-latest
@@ -50,15 +50,15 @@ jobs:
       - name: Configure SSH Key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/deploy_key.pem
-          chmod 600 ~/.ssh/deploy_key.pem
+          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/kickconnect-key.pem
+          chmod 600 ~/.ssh/kickconnect-key.pem
 
       - name: Add EC2 Server to Known Hosts
         run: ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
       - name: Restart Application on EC2
         run: |
-          ssh -i ~/.ssh/deploy_key.pem ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+          ssh -i ~/.ssh/kickconnect-key.pem ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
           # 기존 실행 중인 애플리케이션 종료
           sudo pkill -f 'java -jar' || true
           
